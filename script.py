@@ -1,6 +1,9 @@
 import urllib2
 from bs4 import BeautifulSoup
 import re
+import os
+import sys
+from docx import Document
 
 class Recipe:
 	def __init__(self, title, ingredients, texts):
@@ -57,9 +60,28 @@ def get_recipe(link):
 	print("==================================================")
 	print("Processing '%s'" % title)
 	return Recipe(title, get_ingredients(s), get_text(s))
-	
 
+output_dir = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "output")
+def create_output_dir():
+	if (not os.path.exists(output_dir) or not os.path.isdir(output_dir)):
+		os.makedirs(output_dir)
+
+def generate_documents(recipes):
+	create_output_dir()
+	for recipe in recipes:
+		doc = Document()
+		doc.add_heading(recipe.title.string, level = 0)
+		doc.add_heading("Zutaten", level = 1)
+		for ingredient in recipe.ingredients:
+			doc.add_paragraph(ingredient, style = "ListBullet")
+		instructions_paragraph = doc.add_heading("Zubereitung", level = 1)
+		for text in recipe.texts:
+			doc.add_paragraph(text)
+		doc.save(os.path.join(output_dir, recipe.title.string + ".docx"))
+
+#Entry point
 root_soup = BeautifulSoup(get_html("http://feinkostpunks.de/fix-ohne-fix/"), "lxml")
-
-for link_a in get_recipe_links(root_soup):
-	recipe = get_recipe(link_a["href"])
+recipes = map(lambda link_a_tag: get_recipe(link_a_tag["href"]), get_recipe_links(root_soup))
+#recipes = [get_recipe("http://feinkostpunks.de/fix-ohne-fix-nudel-schinken-gratin/")]
+generate_documents(recipes)
+print("Done: " + output_dir)
