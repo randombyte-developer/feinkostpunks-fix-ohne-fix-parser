@@ -4,6 +4,7 @@ import re
 import os
 import sys
 from docx import Document
+from docx.shared import Pt
 
 class Recipe:
 	def __init__(self, title, ingredients, texts):
@@ -70,18 +71,33 @@ def generate_documents(recipes):
 	create_output_dir()
 	for recipe in recipes:
 		doc = Document()
-		doc.add_heading(recipe.title.string, level = 0)
-		doc.add_heading("Zutaten", level = 1)
+
+		heading_r = doc.add_paragraph().add_run(recipe.title.string)
+		heading_r.font.size = Pt(14)
+		heading_r.font.bold = True
+		heading_r.font.underline = True
+
+		ingredients_p = doc.add_paragraph()
+		ingredients_r = ingredients_p.add_run("Zutaten")
+		ingredients_r.font.size = Pt(13)
+		ingredients_r.font.bold = True
 		for ingredient in recipe.ingredients:
-			doc.add_paragraph(ingredient, style = "ListBullet")
-		instructions_paragraph = doc.add_heading("Zubereitung", level = 1)
+			ingredient_li_p = doc.add_paragraph(style = "ListBullet")
+			ingredient_li_p.add_run(ingredient).font.size = Pt(13)
+
+		instructions_p = doc.add_paragraph()
+		instructions_r = instructions_p.add_run("Zubereitung")
+		instructions_r.font.size = Pt(13)
+		instructions_r.font.bold = True
 		for text in recipe.texts:
-			doc.add_paragraph(text)
+			text_r = doc.add_paragraph().add_run(text)
+			text_r.font.size = Pt(13)
+
 		doc.save(os.path.join(output_dir, recipe.title.string + ".docx"))
 
 #Entry point
 root_soup = BeautifulSoup(get_html("http://feinkostpunks.de/fix-ohne-fix/"), "lxml")
-recipes = map(lambda link_a_tag: get_recipe(link_a_tag["href"]), get_recipe_links(root_soup))
-#recipes = [get_recipe("http://feinkostpunks.de/fix-ohne-fix-nudel-schinken-gratin/")]
+#recipes = map(lambda link_a_tag: get_recipe(link_a_tag["href"]), get_recipe_links(root_soup))
+recipes = [get_recipe("http://feinkostpunks.de/fix-ohne-fix-nudel-schinken-gratin/")]
 generate_documents(recipes)
 print("Done: " + output_dir)
