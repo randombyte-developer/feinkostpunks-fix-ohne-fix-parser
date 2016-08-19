@@ -97,7 +97,7 @@ def generate_documents(recipes):
 
 #Entry point
 root_soup = BeautifulSoup(get_html("http://feinkostpunks.de/fix-ohne-fix/"), "lxml")
-#recipes = map(lambda link_a_tag: get_recipe(link_a_tag["href"]), get_recipe_links(root_soup))
-recipes = [get_recipe("http://feinkostpunks.de/fix-ohne-fix-nudel-schinken-gratin/")]
+recipes = map(lambda link_a_tag: get_recipe(link_a_tag["href"]), get_recipe_links(root_soup))
+#recipes = [get_recipe("http://feinkostpunks.de/fix-ohne-fix-nudel-schinken-gratin/")]
 generate_documents(recipes)
 print("Done: " + output_dir)
